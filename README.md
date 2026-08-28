@@ -6,7 +6,7 @@ Voir le cahier des charges pour la spécification complète du projet, et `PROGR
 
 ## Pile technique
 
-- React 18 + Vite + TypeScript
+- React 19 + Vite + TypeScript
 - Tailwind CSS 4
 - Supabase (base de données, authentification, stockage)
 - Netlify (hébergement, Edge Functions)
