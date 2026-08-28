@@ -18,9 +18,16 @@ Référence : cahier des charges v1.2, plan de réalisation en 10 étapes (§13)
 - Client Supabase initialisé dans `src/lib/supabase.ts`.
 - Page d'accueil temporaire (sera remplacée à l'étape 5).
 
-## Étape 2 — Design system
+## Étape 2 — Design system ✅
 
-Non démarrée.
+- Tokens couleur (palette §9.2) et typographiques (§9.3) via `@theme` Tailwind v4 (`src/styles/theme.css`).
+- Polices : Playfair Display (titres), Inter (texte courant), DM Mono (références/prix), chargées via Google Fonts avec `preconnect` et `display=swap`.
+- Composants verre `.glass` / `.glass-elevated` / `.glass-modal` (§9.1), avec repli `@supports not (backdrop-filter)` (`src/styles/glass.css`, `src/components/GlassPanel.tsx`).
+- Fond rosé animé : 4 halos en `position: fixed`, `translate3d` + `hue-rotate` ±12°, cycles 65–90 s, uniquement `@keyframes` CSS (`src/styles/background.css`, `src/components/AnimatedBackground.tsx`). Coupé via `prefers-reduced-motion: reduce`.
+- Mode sombre à trois états (clair/sombre/auto) : `ThemeProvider`/`useTheme` (`src/hooks/useTheme.tsx`), persistance `localStorage`, tokens redéfinis sous `[data-theme="dark"]` et `prefers-color-scheme`. Palette sombre dérivée (non spécifiée dans le cahier), à affiner si besoin.
+- Élément signature : `ReferenceLabel` (référence-étiquette monospace or sur bandeau de verre, §9.4).
+- Règle globale d'accessibilité `prefers-reduced-motion` appliquée dans `src/styles/base.css` (§11).
+- Page d'accueil temporaire transformée en vitrine du design system pour validation visuelle (remplacée à l'étape 5). Vérifié en thème clair et sombre via `playwright screenshot`, aucune erreur console.
 
 ## Étape 3 — Base de données Supabase
 

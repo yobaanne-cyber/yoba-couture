@@ -1,0 +1,115 @@
+/* Fond rosé dynamique (§9.2). Uniquement des @keyframes CSS accélérées
+   par le GPU — aucune boucle JavaScript. Mouvement imperceptible en
+   observation directe, cycle 60 à 90 s, dérive de teinte ±12°. */
+
+@layer components {
+  .site-background {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background: var(--color-rose-poudre);
+    pointer-events: none;
+  }
+
+  .halo {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(60px);
+    will-change: transform, filter;
+  }
+
+  .halo-1 {
+    top: -15vw;
+    left: -10vw;
+    width: 70vw;
+    height: 70vw;
+    opacity: 0.55;
+    background: radial-gradient(circle, var(--color-rose-argile), transparent 70%);
+    animation: drift-1 75s ease-in-out infinite;
+  }
+
+  .halo-2 {
+    right: -15vw;
+    bottom: -15vw;
+    width: 65vw;
+    height: 65vw;
+    opacity: 0.5;
+    background: radial-gradient(circle, var(--color-terre-rose), transparent 70%);
+    animation: drift-2 90s ease-in-out infinite;
+  }
+
+  .halo-3 {
+    top: 20vw;
+    right: 10vw;
+    width: 60vw;
+    height: 60vw;
+    opacity: 0.16;
+    background: radial-gradient(circle, var(--color-or-fil), transparent 75%);
+    animation: drift-3 80s ease-in-out infinite;
+  }
+
+  .halo-4 {
+    bottom: 5vw;
+    left: 5vw;
+    width: 62vw;
+    height: 62vw;
+    opacity: 0.35;
+    background: radial-gradient(circle, var(--color-rose-argile), transparent 70%);
+    animation: drift-4 65s ease-in-out infinite reverse;
+  }
+}
+
+@keyframes drift-1 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    filter: blur(60px) hue-rotate(0deg);
+  }
+  50% {
+    transform: translate3d(5vw, 6vw, 0);
+    filter: blur(60px) hue-rotate(12deg);
+  }
+}
+
+@keyframes drift-2 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    filter: blur(60px) hue-rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-6vw, -4vw, 0);
+    filter: blur(60px) hue-rotate(-12deg);
+  }
+}
+
+@keyframes drift-3 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    filter: blur(60px) hue-rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-4vw, 5vw, 0);
+    filter: blur(60px) hue-rotate(8deg);
+  }
+}
+
+@keyframes drift-4 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    filter: blur(60px) hue-rotate(0deg);
+  }
+  50% {
+    transform: translate3d(4vw, -5vw, 0);
+    filter: blur(60px) hue-rotate(-8deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo {
+    animation: none !important;
+  }
+}

@@ -1,10 +1,14 @@
 import { Route, Routes } from 'react-router-dom'
+import AnimatedBackground from '@/components/AnimatedBackground'
 import Home from '@/pages/Home'
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-    </Routes>
+    <>
+      <AnimatedBackground />
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </>
   )
 }
