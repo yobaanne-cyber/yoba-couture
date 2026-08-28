@@ -1,0 +1,62 @@
+name: Sauvegarde hebdomadaire Supabase
+
+# Le plan gratuit Supabase n'offre aucune sauvegarde automatique (§10.6).
+# Ce workflow exécute un pg_dump chaque semaine et pousse l'archive
+# compressée sur une branche dédiée "backups" du dépôt (privé) — jamais sur
+# la branche de code. Conserve les 8 dernières sauvegardes (~2 mois).
+on:
+  schedule:
+    - cron: '0 5 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Installer le client PostgreSQL
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Dump de la base Supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          mkdir -p /tmp/backup
+          pg_dump "$SUPABASE_DB_URL" --no-owner --no-privileges --format=plain \
+            | gzip > /tmp/backup/dump.sql.gz
+
+      - name: Pousser l'archive sur la branche backups
+        run: |
+          git config user.name "yoba-backup-bot"
+          git config user.email "backup-bot@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin backups > /dev/null 2>&1; then
+            git checkout -B backups origin/backups
+          else
+            git checkout --orphan backups
+            git rm -rf . > /dev/null 2>&1 || true
+          fi
+
+          mkdir -p backups
+          filename="backups/yoba-couture-$(date -u +%Y-%m-%d).sql.gz"
+          mv /tmp/backup/dump.sql.gz "$filename"
+
+          # Ne garde que les 8 dernières sauvegardes (~2 mois glissants)
+          ls -1t backups/*.sql.gz | tail -n +9 | xargs -r rm --
+
+          git add backups
+          git commit -m "Sauvegarde Supabase du $(date -u +%Y-%m-%d)" || echo "Rien à committer, on ignore"
+          git push origin backups
+
+      - name: Empêcher la désactivation de ce workflow après 60 jours sans commit
+        if: github.event_name == 'schedule'
+        uses: liskin/gh-workflow-keepalive@v1

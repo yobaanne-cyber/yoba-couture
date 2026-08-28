@@ -1,0 +1,49 @@
+name: Supabase keep-alive
+
+# Empêche la mise en pause du projet Supabase après 7 jours sans activité
+# sur la base (§10.6, §10.7.2). Cron tous les 3 jours (marge de sécurité :
+# un cron "tous les 5 jours" avec la syntaxe */N sur le jour du mois peut
+# dériver jusqu'à 6 jours réels, trop proche de la limite des 7 jours).
+on:
+  schedule:
+    - cron: '0 6 */3 * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Interroger site_settings via l'API REST Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          http_code=$(curl -sS -o /tmp/response.json -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/site_settings?select=key&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          echo "Run du ${timestamp} — code HTTP : ${http_code}"
+          cat /tmp/response.json
+          echo
+
+          if [ "$http_code" != "200" ]; then
+            echo "::error::Échec du keep-alive Supabase (code HTTP ${http_code})"
+            exit 1
+          fi
+
+      # Anti-désactivation (§10.7.3) : GitHub désactive un workflow planifié
+      # après 60 jours sans commit sur le dépôt. L'outil cité dans le cahier
+      # (gautamkrishnar/keepalive-workflow) a depuis été désactivé par
+      # GitHub pour violation des conditions d'utilisation (il créait des
+      # commits factices pour contourner la règle). On utilise à la place
+      # l'API officielle "re-enable workflow" via un jeton natif à l'action
+      # (aucun commit factice, aucun secret supplémentaire).
+      - name: Empêcher la désactivation de ce workflow après 60 jours sans commit
+        if: github.event_name == 'schedule'
+        uses: liskin/gh-workflow-keepalive@v1
