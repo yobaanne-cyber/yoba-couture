@@ -29,9 +29,18 @@ Référence : cahier des charges v1.2, plan de réalisation en 10 étapes (§13)
 - Règle globale d'accessibilité `prefers-reduced-motion` appliquée dans `src/styles/base.css` (§11).
 - Page d'accueil temporaire transformée en vitrine du design system pour validation visuelle (remplacée à l'étape 5). Vérifié en thème clair et sombre via `playwright screenshot`, aucune erreur console.
 
-## Étape 3 — Base de données Supabase
+## Étape 3 — Base de données Supabase ✅ (partiel — workflows GitHub Actions en attente de validation)
 
-Non démarrée.
+- Schéma complet appliqué sur le projet Supabase (`gmocuntpogitstsmgwhu`, région eu-west-1) via 7 migrations (`supabase/migrations/`) : `profiles`/rôles protégés, catalogue (`categories`, `modes`, `fabrics`, `colors`, `products`, tables de jonction, `product_media` plafonné à 6 photos), `orders`/`favorites`/`reviews`/`measurements`, `hero_slides`/`site_settings`/`audit_log`.
+- RLS activé sur les 19 tables, conforme au §10.3 (lecture publique produits/avis uniquement si publiés/approuvés, écriture staff, clés `site_settings` critiques réservées à l'owner, rôle protégé contre l'auto-élévation).
+- Génération automatique des références (`YB-GB-0001`…) et numéros de commande (`CMD-2026-0001`…) par triggers.
+- 2 buckets Storage créés (`product-media`, `site-assets`), publics en lecture, écriture staff uniquement, limite 512 Ko/fichier.
+- Audit sécurité Supabase passé : `search_path` fixé sur toutes les fonctions, fonctions triggers retirées de l'exécution publique RPC, index FK manquants ajoutés.
+- RLS vérifiées par simulation de rôle (`set local role anon`) : lecture publique OK, écriture bloquée, produit brouillon invisible.
+- Jeu de données de test inséré (`supabase/seed.sql`) : 4 catégories, 11 modes, tissus, couleurs, 3 produits (2 publiés, 1 brouillon), réglages par défaut de `site_settings` (nom du site, modèle de message WhatsApp, etc.).
+- Types TypeScript générés (`src/types/database.ts`), client Supabase typé (`src/lib/supabase.ts`).
+- `.env` local rempli avec les vraies clés du projet (non commité).
+- **En attente de validation utilisateur avant commit/push** (§10.7.6) : 2 workflows GitHub Actions écrits (`supabase-keep-alive.yml`, `supabase-backup.yml`). Découverte en cours de route : l'action `gautamkrishnar/keepalive-workflow` citée au §10.7.3 a été désactivée par GitHub pour violation des CGU (commits factices) ; remplacée par `liskin/gh-workflow-keepalive` (ré-activation via API officielle, aucun commit factice), intégrée comme étape finale dans chacun des deux workflows plutôt qu'un 3ᵉ fichier séparé. Sauvegardes poussées sur une branche `backups` dédiée du même dépôt (choix validé avec l'utilisateur).
 
 ## Étape 4 — Authentification
 
